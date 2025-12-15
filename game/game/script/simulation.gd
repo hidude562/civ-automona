@@ -7,6 +7,35 @@ var cell_data_map: Dictionary = {}
 # Preload the script for set_script usage
 var CellDataScript = preload("res://script/CellData.gd")
 
+# Team colors as hue values (0.0 to 1.0)
+const TEAM_HUES: Array[float] = [0.0, 0.33, 0.66, 0.15, 0.5, 0.85]
+
+func _ready() -> void:
+	setup_team_materials()
+
+func setup_team_materials() -> void:
+	# Create alternative tiles for each team with hue-shifted materials
+	var ts = tile_set
+	if ts == null:
+		return
+	
+	for source_id in ts.get_source_count():
+		var source = ts.get_source(ts.get_source_id(source_id))
+		if source is TileSetAtlasSource:
+			var atlas_source = source as TileSetAtlasSource
+			# For each tile in the atlas
+			for tile_idx in atlas_source.get_tiles_count():
+				var tile_coords = atlas_source.get_tile_id(tile_idx)
+				
+				# Create alternatives for teams 1-5 (0 is base)
+				for team in range(1, TEAM_HUES.size()):
+					if not atlas_source.has_alternative_tile(tile_coords, team):
+						atlas_source.create_alternative_tile(tile_coords, team)
+					
+					# Set modulate color based on team hue
+					var tile_data = atlas_source.get_tile_data(tile_coords, team)
+					tile_data.modulate = Color.from_hsv(TEAM_HUES[team], 0.7, 1.0)
+
 func get_cell_data(coords: Vector2i) -> Resource:
 	if not cell_data_map.has(coords):
 		var data = Resource.new()
@@ -21,6 +50,22 @@ func move_cell_data(from: Vector2i, to: Vector2i) -> void:
 	if cell_data_map.has(from):
 		cell_data_map[to] = cell_data_map[from]
 		cell_data_map.erase(from)
+
+func get_cell_team(coords: Vector2i) -> int:
+	return get_cell_data(coords).team
+
+func set_cell_team(coords: Vector2i, value: int) -> void:
+	get_cell_data(coords).team = value
+	# Update the visual to match
+	update_cell_visual(coords)
+
+func update_cell_visual(coords: Vector2i) -> void:
+	var source_id = get_cell_source_id(coords)
+	if source_id == -1:
+		return
+	var atlas_coords = get_cell_atlas_coords(coords)
+	var team = get_cell_team(coords)
+	set_cell(coords, source_id, atlas_coords, team)
 
 # Orientation 
 func get_cell_orientation(coords: Vector2i) -> int:
@@ -49,23 +94,33 @@ func get_cell_movement(coords: Vector2i) -> Vector2i:
 	var orientation = get_cell_orientation(coords)
 	return get_movement_from_orientation(orientation, coords)
 
-func create_person_at(coords: Vector2i, orientation: int, tile_map: TileMapLayer, data_map: Dictionary) -> void:
+func set_cell_with_team(coords: Vector2i, source_id: int, atlas_coords: Vector2i, team: int) -> void:
+	# Clamp team to valid range
+	var alt_id = clampi(team, 0, TEAM_HUES.size() - 1)
+	set_cell(coords, source_id, atlas_coords, alt_id)
+
+func create_person_at(coords: Vector2i, orientation: int, team: int, tile_map: TileMapLayer, data_map: Dictionary) -> void:
 	# Don't overwrite existing tiles
 	if tile_map.get_cell_source_id(coords) != -1:
 		return
 	
-	tile_map.set_cell(coords, 2, Vector2i(0, 0))
+	# Use team as alternative tile ID for coloring
+	tile_map.set_cell_with_team(coords, 2, Vector2i(0, 0), team)
 	
 	var new_data = Resource.new()
 	new_data.set_script(CellDataScript)
 	new_data.orientation = orientation
 	new_data.times_moved = 0
+	new_data.team = team
 	data_map[coords] = new_data
 
-func create_building_at(coords: Vector2i, tile_map: TileMapLayer, data_map: Dictionary) -> void:
-	tile_map.set_cell(coords, 1, Vector2i(0, 0))
-	# Buildings don't need data, so remove any existing
-	data_map.erase(coords)
+func create_building_at(coords: Vector2i, team: int, tile_map: TileMapLayer, data_map: Dictionary) -> void:
+	tile_map.set_cell_with_team(coords, 1, Vector2i(0, 0), team)
+	# Buildings now store team data
+	var new_data = Resource.new()
+	new_data.set_script(CellDataScript)
+	new_data.team = team
+	data_map[coords] = new_data
 
 func tile_iterate(coords: Vector2i, old_tile_map: TileMapLayer, new_tile_map: TileMapLayer, new_data_map: Dictionary):
 	var tile_type = old_tile_map.get_cell_source_id(coords)
@@ -76,9 +131,13 @@ func tile_iterate(coords: Vector2i, old_tile_map: TileMapLayer, new_tile_map: Ti
 			var new_person_spot_delta: Vector2i = get_cell_movement(coords)
 			var new_person_spot: Vector2i = new_person_spot_delta + coords
 			
+			var cell_team = get_cell_team(coords)
+			if cell_team == 0:
+				set_cell_team(coords,  randi_range(0, 5  ))
+			
 			# Create new person with source's current orientation
 			var source_orientation = get_cell_orientation(coords)
-			create_person_at(new_person_spot, source_orientation, new_tile_map, new_data_map)
+			create_person_at(new_person_spot, source_orientation, get_cell_team(coords), new_tile_map, new_data_map)
 			
 			# Increment source orientation
 			increment_orientation(coords)
@@ -104,28 +163,31 @@ func tile_iterate(coords: Vector2i, old_tile_map: TileMapLayer, new_tile_map: Ti
 					current_data.times_moved += 1
 					
 					# Check if person should become a building
-					if current_data.times_moved >= 2:
-						create_building_at(new_expected_tile, new_tile_map, new_data_map)
+					if current_data.times_moved >= 3:
+						create_building_at(new_expected_tile, current_data.team, new_tile_map, new_data_map)
 					else:
-						# Move tile normally
-						new_tile_map.set_cell(new_expected_tile, 2, Vector2i(0, 0))
+						# Move tile normally with team color
+						new_tile_map.set_cell_with_team(new_expected_tile, 2, Vector2i(0, 0), current_data.team)
 						new_data_map[new_expected_tile] = current_data
 					
 				# Building - spawn 2 new people
 				1:
 					var building_coords = new_expected_tile
 					
+					# Transfer building team
+					set_cell_team(building_coords, current_data.team)
+					
 					# Orientation above (+1) and below (-1), wrapped around 0-5
 					var orientation_above = (current_orientation + 4) % 6
-					var orientation_below = (current_orientation - 4 + 6) % 6
+					var orientation_below = (current_orientation - 4 + 6) % 6 
 					
 					# Calculate spawn positions: one move outward from building
 					var spawn_above = building_coords + get_movement_from_orientation(orientation_above, building_coords)
 					var spawn_below = building_coords + get_movement_from_orientation(orientation_below, building_coords)
 					
-					# Creat  e the two new people
-					create_person_at(spawn_above, orientation_above, new_tile_map, new_data_map)
-					create_person_at(spawn_below, orientation_below, new_tile_map, new_data_map)
+					# Create the two new people
+					create_person_at(spawn_above, orientation_above, current_data.team, new_tile_map, new_data_map)
+					#create_person_at(spawn_below, orientation_below, current_data.team, new_tile_map, new_data_map)
 					
 				# Collision with person = remove both
 				2:
@@ -134,6 +196,8 @@ func tile_iterate(coords: Vector2i, old_tile_map: TileMapLayer, new_tile_map: Ti
 func iterate() -> void:
 	var used_cells = get_used_cells()
 	var copy_tilemap: TileMapLayer = self.duplicate(true)
+	# Copy the helper method to the duplicate
+	copy_tilemap.set_script(get_script())
 	var new_data_map: Dictionary = {}
 	
 	for cell in used_cells:
