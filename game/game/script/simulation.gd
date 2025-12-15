@@ -4,23 +4,20 @@ func get_cell_orientation(coords: Vector2i) -> int:
 	var orientation: int
 	
 	# Get cell orientation using object metadata
-	# Ensure cast to MoreTileData
-	var cell: MoreTileData = get_cell_tile_data(coords) as MoreTileData
-	
-	"""
+	var cell: TileData = get_cell_tile_data(coords)
 	if cell.has_meta("orientation"):
 		orientation = cell.get_meta("orientation")
 	else:
 		cell.set_meta("orientation", 0)
 		orientation = 0
-	"""
 	
-	return cell.orientation
+	return orientation
 
-func increment_orientation(obj: MoreTileData):
-	obj.orientation =  ((obj.orientation + 1) % 6)
+func increment_orientation(obj: Object):
+	var orientation = obj.get_meta("orientation")
+	obj.set_meta("orientation", (orientation + 1) % 6)
 
-# Movement delta
+# movement (Equal to NESW)
 func get_cell_movement(coords: Vector2i) -> Vector2:
 	var orientation = get_cell_orientation(coords)
 	var movement = Vector2i()
@@ -92,7 +89,7 @@ func tile_iterate(coords: Vector2i, old_tile_map: TileMapLayer, new_tile_map: Ti
 					new_tile_map_data.set_meta("times_moved", cell_data.get_meta("times_moved"))
 					new_tile_map_data.set_meta("orientation", cell_data.get_meta("orientation"))
 					
-					print(cell_data.get_meta("orientation") )
+					print(cell_data.get_meta("orientation"))
 					
 					
 				# Building logic
