@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://b0rgfh4smr1rt"]
+[gd_scene load_steps=10 format=3 uid="uid://b0rgfh4smr1rt"]
 
 [ext_resource type="Texture2D" uid="uid://ler0tkuu5npf" path="res://assets/person.png" id="1_kpvv0"]
 [ext_resource type="Texture2D" uid="uid://dnxp2ffiy3081" path="res://assets/building.png" id="2_6ycye"]
 [ext_resource type="Texture2D" uid="uid://dmj1qfely8g23" path="res://assets/source.png" id="3_1dvly"]
 [ext_resource type="Script" uid="uid://hip8opbqemfc" path="res://script/simulation.gd" id="3_34im5"]
+[ext_resource type="Script" uid="uid://dyuhuod8q5ldn" path="res://script/camera.gd" id="5_1dvly"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_t82je"]
 texture = ExtResource("3_1dvly")
@@ -36,3 +37,4 @@ script = ExtResource("3_34im5")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.73, 0.73)
+script = ExtResource("5_1dvly")

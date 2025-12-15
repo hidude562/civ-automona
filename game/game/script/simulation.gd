@@ -123,7 +123,7 @@ func tile_iterate(coords: Vector2i, old_tile_map: TileMapLayer, new_tile_map: Ti
 					var spawn_above = building_coords + get_movement_from_orientation(orientation_above, building_coords)
 					var spawn_below = building_coords + get_movement_from_orientation(orientation_below, building_coords)
 					
-					# Create the two new people
+					# Creat  e the two new people
 					create_person_at(spawn_above, orientation_above, new_tile_map, new_data_map)
 					create_person_at(spawn_below, orientation_below, new_tile_map, new_data_map)
 					
