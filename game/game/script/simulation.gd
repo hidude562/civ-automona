@@ -36,13 +36,16 @@ func increment_orientation(coords: Vector2i) -> void:
 # Movement (Equal to NESW for hex)
 func get_cell_movement(coords: Vector2i) -> Vector2i:
 	var orientation = get_cell_orientation(coords)
+	var y_mod = abs(coords.y % 2)
+	
+	
 	match orientation:
 		0: return Vector2i(1, 0)
-		1: return Vector2i(0, 1)
-		2: return Vector2i(-1, 1)
+		1: return Vector2i(y_mod, 1)
+		2: return Vector2i(-(1-y_mod), 1)
 		3: return Vector2i(-1, 0)
-		4: return Vector2i(-1, -1)
-		5: return Vector2i(0, -1)
+		4: return Vector2i(-(1-y_mod), -1)
+		5: return Vector2i(y_mod, -1)
 	return Vector2i()
 
 func tile_iterate(coords: Vector2i, old_tile_map: TileMapLayer, new_tile_map: TileMapLayer, new_data_map: Dictionary):
