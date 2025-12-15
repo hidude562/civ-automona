@@ -22,7 +22,7 @@ sources/1 = SubResource("TileSetAtlasSource_1dvly")
 [node name="Node2D" type="Node2D"]
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
-tile_map_data = PackedByteArray(0, 0, 255, 255, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 255, 255, 252, 255, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 255, 255, 0, 0, 0, 0, 0, 0, 0, 48)
+tile_map_data = PackedByteArray(0, 0, 255, 255, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 255, 255, 0, 0, 0, 0, 0, 0, 0, 48, 9, 0, 255, 255, 0, 0, 0, 0, 0, 0, 0, 48, 253, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 32)
 tile_set = SubResource("TileSet_i0h8x")
 script = ExtResource("3_34im5")
 
