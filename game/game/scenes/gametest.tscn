@@ -1,30 +1,38 @@
-[gd_scene load_steps=7 format=3 uid="uid://b0rgfh4smr1rt"]
+[gd_scene load_steps=9 format=3 uid="uid://b0rgfh4smr1rt"]
 
-[ext_resource type="Texture2D" uid="uid://bm2q110do6327" path="res://assets/person.png" id="1_kpvv0"]
-[ext_resource type="Texture2D" uid="uid://x4l7tapd22nc" path="res://assets/structure.png" id="2_34im5"]
+[ext_resource type="Texture2D" uid="uid://ler0tkuu5npf" path="res://assets/person.png" id="1_kpvv0"]
+[ext_resource type="Texture2D" uid="uid://dnxp2ffiy3081" path="res://assets/building.png" id="2_6ycye"]
+[ext_resource type="Texture2D" uid="uid://dmj1qfely8g23" path="res://assets/source.png" id="3_1dvly"]
 [ext_resource type="Script" uid="uid://hip8opbqemfc" path="res://script/simulation.gd" id="3_34im5"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_t82je"]
+texture = ExtResource("3_1dvly")
+texture_region_size = Vector2i(100, 100)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_i0h8x"]
+texture = ExtResource("2_6ycye")
+texture_region_size = Vector2i(100, 100)
+0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6ycye"]
 texture = ExtResource("1_kpvv0")
-texture_region_size = Vector2i(4, 4)
-0:0/0 = 0
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1dvly"]
-texture = ExtResource("2_34im5")
-texture_region_size = Vector2i(4, 4)
+texture_region_size = Vector2i(100, 100)
 0:0/0 = 0
 
 [sub_resource type="TileSet" id="TileSet_i0h8x"]
-tile_size = Vector2i(4, 4)
-sources/0 = SubResource("TileSetAtlasSource_6ycye")
-sources/1 = SubResource("TileSetAtlasSource_1dvly")
+tile_shape = 3
+tile_size = Vector2i(100, 100)
+sources/0 = SubResource("TileSetAtlasSource_t82je")
+sources/1 = SubResource("TileSetAtlasSource_i0h8x")
+sources/2 = SubResource("TileSetAtlasSource_6ycye")
 
 [node name="Node2D" type="Node2D"]
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
-tile_map_data = PackedByteArray(0, 0, 255, 255, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 255, 255, 0, 0, 0, 0, 0, 0, 0, 48, 9, 0, 255, 255, 0, 0, 0, 0, 0, 0, 0, 48, 253, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 32)
+tile_map_data = PackedByteArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 tile_set = SubResource("TileSet_i0h8x")
 script = ExtResource("3_34im5")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(8, 8)
+zoom = Vector2(0.73, 0.73)
