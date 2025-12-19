@@ -130,11 +130,11 @@ func tile_iterate(coords: Vector2i, old_tile_map: TileMapLayer, new_tile_map: Ti
 		0:
 			var new_person_spot_delta: Vector2i = get_cell_movement(coords)
 			var new_person_spot: Vector2i = new_person_spot_delta + coords
-			
+			"""
 			var cell_team = get_cell_team(coords)
 			if cell_team == 0:
-				set_cell_team(coords,  randi_range(0, 5  ))
-			
+				set_cell_team(coords,  randi_range(0, 5))
+			"""
 			# Create new person with source's current orientation
 			var source_orientation = get_cell_orientation(coords)
 			create_person_at(new_person_spot, source_orientation, get_cell_team(coords), new_tile_map, new_data_map)
@@ -177,21 +177,35 @@ func tile_iterate(coords: Vector2i, old_tile_map: TileMapLayer, new_tile_map: Ti
 					# Transfer building team
 					set_cell_team(building_coords, current_data.team)
 					
+					# Increment building orientation each time it's hit
+					increment_orientation(building_coords)
+					
 					# Orientation above (+1) and below (-1), wrapped around 0-5
-					var orientation_above = (current_orientation + 4) % 6
-					var orientation_below = (current_orientation - 4 + 6) % 6 
+					var orientation_above = (current_orientation + 2) % 6
+					var orientation_below = (current_orientation - 2 + 6) % 6 
 					
 					# Calculate spawn positions: one move outward from building
 					var spawn_above = building_coords + get_movement_from_orientation(orientation_above, building_coords)
 					var spawn_below = building_coords + get_movement_from_orientation(orientation_below, building_coords)
 					
-					# Create the two new people
-					create_person_at(spawn_above, orientation_above, current_data.team, new_tile_map, new_data_map)
-					#create_person_at(spawn_below, orientation_below, current_data.team, new_tile_map, new_data_map)
+					# Create one new person based off orientation
+					print(get_cell_orientation(building_coords))
+					
+					if(get_cell_orientation(building_coords) % 2 == 0):
+						create_person_at(spawn_above, orientation_above, current_data.team, new_tile_map, new_data_map)
+					else:
+						create_person_at(spawn_below, orientation_below, current_data.team, new_tile_map, new_data_map)
+					
 					
 				# Collision with person = remove both
 				2:
-					pass
+					current_data.times_moved = 0
+					# If team different..
+					if true or get_cell_team(new_expected_tile) != current_data.team:
+						# Remove
+						pass
+					else:
+						create_person_at(coords, (current_data.orientation+2)%6, current_data.team, new_tile_map, new_data_map)
 
 func iterate() -> void:
 	var used_cells = get_used_cells()
@@ -213,6 +227,10 @@ func iterate() -> void:
 	
 	cell_data_map = new_data_map
 	cell_data_map.merge(sources_to_keep, true)
+
+func _process(delta: float):
+	pass
+	#iterate()
 
 func _input(event):
 	if event.is_action_pressed("ui_accept"):
